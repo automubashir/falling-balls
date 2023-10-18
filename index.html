@@ -1,9 +1,166 @@
 <html>
   <head>
     <title>Falling Balls - Game</title>
+    <style>
+      :root {
+	--speed: 10s;
+}
+* {
+	margin: 0;
+	padding: 0;
+	border-radius: border-box;
+}
+
+body {
+	cursor: crosshair;
+	caret-color: red;
+	/* perspective: 50px; */
+	position: relative;
+	width: 100%;
+	height: 100vh;
+	background-color: black;
+}
+
+.targets {
+	position: absolute;
+	content: '';
+	width: 100%;
+	height: 100%;
+	z-index: 8;
+	overflow: hidden;
+}
+
+.targets span {
+	position: absolute;
+	display: block;
+	width: 100px;
+	height: 100px;
+	top: 0;
+	left: 0;
+	background: red;
+	z-index: 809;
+	border-radius: 50%;
+	animation: fall var(--speed) linear forwards;
+	transition: all 0.2s ease;
+	box-shadow: 0px 0px 4px rgba(10,10,10,0.15);
+}
+
+.destroy {
+	width: 0px !important;
+	height: 0px !important;
+	transform: translate(50%, 50%);
+}
+
+.score-board {
+	position: absolute;
+	top: 0;
+	width: 100%;
+	background: black;
+	color: white;
+	text-align: center;
+	font-size: 1.2rem;
+	font-family: monospace;
+	font-weight: bold;
+	z-index: 9999;
+}
+
+@keyframes fall {
+	0% {top: -100px;}
+	100% {top: 100%;}
+}
+
+@keyframes destroyed {
+	0% {width: 0px;}
+	100% {height: 0px;}
+}
+    </style>
   </head>
   <body>
     <div class="targets"></div>
     <div class="score-board"></div>
   </body>
+  <script>
+    var speed = 3
+var delay = parseInt(speed) * 200
+var time = new Date().getTime();
+var targets = document.querySelector(".targets")
+var slots = []
+var next_drop = randomXY();
+var eggs = document.querySelector(".targets span")
+
+var score = 0;
+
+targets.setAttribute("style","--speed:"+speed+"s")
+function randomXY() {
+	return {
+		x: Math.floor(Math.random()*(targets.clientWidth-100)),
+		y: 0
+	}
+}
+
+function randomColor() {
+let colors = ["red","green","blue","orange","pink","yellow","dodgerblue","mediumseagreen"]
+return colors[Math.floor(Math.random()*colors.length)]
+}
+
+function generateObject() {
+	let span_ = `<span style="left: ${next_drop.x}px; top: ${next_drop.y}px;background-color: ${randomColor()}" onmousedown="destoryEgg(event)"></span>`;
+	targets.insertAdjacentHTML('beforeend',span_)
+	
+}
+
+function destoryEgg(event) {
+	event.target.classList.add("destroy")
+	setTimeout(()=>{
+	event.target.remove();
+	score += 1;
+	},200)
+}
+
+function startGame() {
+targets.innerHTML = ""
+score = 0;
+speed = 3
+delay = parseInt(speed) * 200
+targets.setAttribute("style","--speed:"+speed+"s")
+generateObject();
+ var inserter = setInterval(function(){
+ next_drop = randomXY();
+ 	generateObject();
+ },delay)
+ 
+ var checker = setInterval(()=>{
+ 
+ let now = new Date().getTime();
+ if((now-time)>=10000) {
+ 	time = now
+ 	speed-=0.1
+	delay = parseInt(speed) * 200
+	targets.setAttribute("style","--speed:"+speed+"s")
+ } 
+	
+ 	eggs = document.querySelectorAll(".targets span")
+	eggs.forEach(x=>{
+		if(x.getBoundingClientRect().y+x.clientHeight>=targets.getBoundingClientRect().y+targets.clientHeight) {
+		clearInterval(inserter);
+		clearInterval(checker)
+		
+		targets.innerHTML = ""
+		let span_ = `<div style="width: 100%;height: 100%;display: flex; flex-direction: column; justify-content: center; align-items: center;">
+		<div style="font-size:1.2rem; font-weight: bold; font-family: monospace;color: white;">Score: ${score}</div><br>
+		<button class="restart-game" onclick="startGame()">Restart Game</button>
+		</div>`;
+	targets.insertAdjacentHTML('beforeend',span_)
+		} else {
+			let score_board = document.querySelector(".score-board");
+			score_board.innerHTML = "Score: "+score+" --- Speed: "+((4-speed)*100).toFixed(0);
+		}
+	})
+ },0)
+}
+
+window.onload = function() {
+	startGame();
+}
+  </script>
 </html>
